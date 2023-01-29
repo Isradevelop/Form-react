@@ -9,9 +9,10 @@ export interface ClientInterface {
     age: number,
     languages: string[],
     comment: string,
-    genre: string,
+    comment2: string,
+    genre: 'male' | 'female',
     titles: string[],
-    drivingLicense: string
+    drivingLicense: 'yes' | 'no'
 }
 
 interface WorkInterface {

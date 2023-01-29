@@ -3,20 +3,25 @@ import { useEffect, useState } from 'react';
 interface checkboxInterface {
     checkboxName: string,
     selecteds: string | string[],
-    values: string[]
+    allowedValues: string[]
 }
 
 interface RadioInterface {
     radioName: string,
     selected: string,
-    values: string[]
+    allowedValues: string[]
+}
+
+interface textAreaInterface {
+    textareaName: string,
+    textareaText: string
 }
 
 interface Props {
     objectToConvertToForm: any,
-    textArea?: string | string[],
-    checkbox?: checkboxInterface[]
-    radio?: RadioInterface[]
+    textArea: textAreaInterface[],
+    checkbox: checkboxInterface[]
+    radio: RadioInterface[]
 }
 
 export const Form = ({ objectToConvertToForm, textArea, checkbox, radio }: Props) => {
@@ -26,8 +31,11 @@ export const Form = ({ objectToConvertToForm, textArea, checkbox, radio }: Props
     let checkboxAsArray: any;
     let radioAsArray: any;
 
+    const textareaAsArray = Object.entries(textArea);
+
     //convertimos el objeto qu e nos llega a array
     const objectToConvertToFormArray = Object.entries(objectToConvertToForm);
+    console.log(objectToConvertToFormArray);
 
     if (typeof checkbox === 'object') {
         checkboxAsArray = Object.entries(checkbox);
@@ -37,19 +45,22 @@ export const Form = ({ objectToConvertToForm, textArea, checkbox, radio }: Props
         radioAsArray = Object.entries(radio);
     }
 
-    //console.log(objectToConvertToFormArray)
-
 
     useEffect(() => {
 
-        objectToConvertToFormArray.map((objectToConvert, index) => {
+        objectToConvertToFormArray.map((objectToConvert) => {
 
-            if (objectToConvert[0] === textArea) {//textarea
-                htmlForm += `
-                    <label>${objectToConvert[0]}</label>
-                    <textarea>${objectToConvert[1]}</textarea></br>
-                `;
-                setHtmlFormState(htmlForm);
+            if (objectToConvert[0] === textArea[0].textareaName) {//textarea
+
+                textArea.map((textAreaItem) => {
+
+                    const textareaItemArray = Object.entries(textAreaItem);
+                    htmlForm += `
+                        <label>${textareaItemArray[0][1]}</label>
+                        <textarea>${textareaItemArray[1][1]}</textarea></br>
+                    `;
+                })
+
 
             } else if (objectToConvert[0] === checkboxAsArray[0][1].checkboxName) {//checkbox
 
@@ -103,39 +114,28 @@ export const Form = ({ objectToConvertToForm, textArea, checkbox, radio }: Props
                     `
                 });
 
-
             } else {
 
                 if (Array.isArray(objectToConvert[1])) {
 
-                    if (typeof objectToConvert[1][1] === 'string' || typeof objectToConvert[1][1] === 'number') {
-                        // array de strings 0 numeros
-                        htmlForm += `
-                        <label>${objectToConvert[0]}</label>
-                        <input type='text' name='${objectToConvert[0]}' value='${objectToConvert[1]}'/></br>
-                        `
+                    //array de objetos
+                    objectToConvert[1].map((arrayElement) => {
+                        const labels = Object.keys(arrayElement);
+                        const values = Object.values(arrayElement);
 
-                    } else {
-                        //array de objetos
-                        objectToConvert[1].map((arrayElement) => {
-                            const labels = Object.keys(arrayElement);
-                            const values = Object.values(arrayElement);
-
-                            if (typeof arrayElement != 'string') {
-                                labels.map((label, index) => {
-                                    htmlForm += `
+                        if (typeof arrayElement != 'string') {
+                            labels.map((label, index) => {
+                                htmlForm += `
                                     <label>${label}</label>
                                     <input type='text' name='${label}-${index}' value='${values[index]}'/></br>
                                 `
-                                })
-                            }
+                            })
+                        }
 
-                        })
-
-                    }
-
+                    })
 
                 } else if (typeof objectToConvert[1] === 'object') {
+
                     //objetos
                     if (objectToConvert[1] === null) return;
 
@@ -147,7 +147,8 @@ export const Form = ({ objectToConvertToForm, textArea, checkbox, radio }: Props
                     <input type='text' name='${item[0]}-${index}' value='${item[1]}' /></br>
                 `
                     })
-                } else if (typeof objectToConvert[1] === 'string' || typeof objectToConvert[1] === 'number') {
+                } else if (objectToConvert[0] != textareaAsArray[1][1].textareaText) {
+                    console.log(textareaAsArray[1])
                     //strings o numeros
                     htmlForm += `
                         <label>${objectToConvert[0]}</label>
@@ -169,27 +170,3 @@ export const Form = ({ objectToConvertToForm, textArea, checkbox, radio }: Props
         <div dangerouslySetInnerHTML={{ __html: htmlFormState }} />
     )
 }
-
-
-//console.log(selectAsArray[0][1].selectName)
-
-                    // //label del checkbox
-                    // htmlForm += `
-                    //     <p>${selectAsArray[0][1]}
-                    // `
-                    // selectAsArray[2][1].map((checkbox: string | number) => {//creamos los checkbox que tendremos
-
-                    //     if (selectAsArray[1][1].includes(checkbox)) {//evaluamos si el checkbox esta seleccionado
-                    //         htmlForm += `
-                    //             <label><input type="checkbox" checked>${checkbox}</label>
-                    //         `
-                    //     } else {
-                    //         htmlForm += `
-                    //             <label><input type="checkbox">${checkbox}</label>
-                    //         `
-                    //     }
-
-                    // })
-                    // htmlForm += `
-                    //     </p></br>
-                    // `
