@@ -5,6 +5,7 @@ import { useObject } from '../hooks/useObject';
 import { useArrayObjects } from '../hooks/useArrayObjects';
 import { useTextArea } from '../hooks/useTextArea';
 import { useRadio } from '../hooks/useRadio';
+import { useCheckbox } from '../hooks/useCheckbox';
 
 interface Props {
     objectToConvertToForm: object,
@@ -13,17 +14,15 @@ interface Props {
     checkbox?: object[]
 }
 
-export const NewForm = ({ objectToConvertToForm, textArea, radio }: Props) => {
+export const NewForm = ({ objectToConvertToForm, textArea, radio, checkbox }: Props) => {
 
     const [formState, setFormState] = useState<string>('');
 
     const objectAsArray = Object.entries(objectToConvertToForm);
 
-    // console.log(objectAsArray)
-    // console.log(radio)
-
     let finalHtml: string;
     let radioNamesArray: string[] = [];
+    let checkboxNamesArray: string[] = [];
 
     useEffect(() => {
 
@@ -38,13 +37,19 @@ export const NewForm = ({ objectToConvertToForm, textArea, radio }: Props) => {
             radioNamesArray.push(radioName);
         });
 
-        objectAsArray.map((arrayElement) => {
-            //console.log(arrayElement)
-            const [label, value] = arrayElement;
-            // console.log(label);
+        // cogemos los checkboxName y los almacenamos en un array
+        checkbox?.map((element) => {
+            const checkboxNameAsArray = Object.entries(element);
 
-            // console.log(radioNamesArray)
-            // String and textarea
+            const [, checkboxName] = checkboxNameAsArray[0];
+
+            checkboxNamesArray.push(checkboxName);
+        });
+
+        objectAsArray.map((arrayElement) => {
+            const [label, value] = arrayElement;
+
+            // String, textarea y radioButton
             if (typeof value === 'string') {
 
                 if (textArea?.includes(label)) {// textarea
@@ -54,8 +59,6 @@ export const NewForm = ({ objectToConvertToForm, textArea, radio }: Props) => {
                     setFormState(finalHtml);
 
                 } else if (radioNamesArray.includes(label)) {// radio
-                    console.log(label);
-                    const radioAsArray = Object.entries(arrayElement);
 
                     radio?.map((radioItem) => {
 
@@ -71,7 +74,7 @@ export const NewForm = ({ objectToConvertToForm, textArea, radio }: Props) => {
                             finalHtml += useRadioResult;
                             setFormState(finalHtml);
                         }
-                    })
+                    });
 
                 } else {//string
 
@@ -80,7 +83,6 @@ export const NewForm = ({ objectToConvertToForm, textArea, radio }: Props) => {
                     finalHtml += useStringResult;
                     setFormState(finalHtml);
                 }
-
             }
 
             // Numero
@@ -100,31 +102,43 @@ export const NewForm = ({ objectToConvertToForm, textArea, radio }: Props) => {
                 setFormState(finalHtml);
             }
 
-            // Array de objetos
+            // Array
             if (typeof value === 'object' && value.length) {
 
-                const { useArrayObjectsResult } = useArrayObjects(arrayElement);
+                if (typeof value[0] === 'string') { // array de string
 
-                finalHtml += useArrayObjectsResult;
-                setFormState(finalHtml);
+                    checkbox?.map((checkboxItem) => {
+
+                        const checkboxAsArray = Object.entries(checkboxItem);
+                        const [, name] = checkboxAsArray[0];
+
+                        if (label === name) {
+
+                            const [, selectedsValue] = checkboxAsArray[1];
+                            const [, allowedValues] = checkboxAsArray[2];
+
+                            const { useCheckboxResult } = useCheckbox(name, selectedsValue, allowedValues);
+
+                            finalHtml += useCheckboxResult;
+                            setFormState(finalHtml);
+                        }
+                    });
+                } else { // array de objetos
+
+                    const { useArrayObjectsResult } = useArrayObjects(arrayElement);
+
+                    finalHtml += useArrayObjectsResult;
+                    setFormState(finalHtml);
+                }
             }
         });
 
-
-
-
-
         finalHtml += "<input type='submit' value='Modificar'/></form>";
         setFormState(finalHtml);
-        //console.log(formState);
     }, [])
 
-
-
-
     return (
-
+        // convertimos un string con formato HTML a HTML
         <div dangerouslySetInnerHTML={{ __html: formState }} />
-
     )
 }

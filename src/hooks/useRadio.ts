@@ -1,7 +1,6 @@
 
 export const useRadio = (name: string, selectedValue: string, allowedValues: any) => {
 
-
   let useRadioResult = `
     <h3>${name}</h3>
   `;
